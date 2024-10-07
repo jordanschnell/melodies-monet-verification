@@ -23,6 +23,10 @@ HH_endday=`${DATE} +%H -d "${END_TIME}"`
 # start/end time is for yesterday, day N-1
 start_time_yaml=${YYYY_today}-${MM_today}-${DD_today}-00:00:00
 end_time_yaml=${YYYY_endday}-${MM_endday}-${DD_endday}-00:00:00
+ts_start=`date +%s -d ${YYYY_today}-${MM_today}-${DD_today}`
+ts_end=`date +%s -d ${YYYY_endday}-${MM_endday}-${DD_endday}`
+nseconds=$((${ts_end}-${ts_start}))
+nhours=$((${nseconds}/3600.))
 #
 workdir=${WORKDIR}
 mkdir -p ${workdir}
@@ -488,11 +492,14 @@ echo "data directory is " $datadir
 ######## Check for data
 has_data=0
 missing=0
-  testfile=${datadir}/dynf*.nc
-  singletestfile=${datadir}/dynf_${YYYY}${MM}${DD}_001.nc
-  if [[ `ls ${testfile} | wc -l` -eq 0 ]]; then
-	  missing=$((${missing}+1))
+  if [[ ${f3} == "rrfs" ]]; then   
+     testfile=${datadir}/dynf*.nc
+     singletestfile=${datadir}/dynf_${YYYY}${MM}${DD}_001.nc
+  elif [[ ${f3} == "wrfchem" ]]; then
+     testfile=${datadir}/wrfout*
+     singletestfile=${datadir}/wrfout_d01_${YYYY}-${MM}-${DD}_00_00_00
   fi
+  missing=$((${nhours} - `ls ${testfile} | wc -l`))
 ####################################################
 
   if [[ ${missing} -gt ${tol_hours_missing} ]]; then
@@ -508,11 +515,6 @@ missing=0
 		has_data=0
 	fi
         echo "Checking backup file"
-#        ncdump -hv ${!modname} ${datadir}/dynf_20230515_000.nc
-#        if [[ $? -eq 0 ]]; then
-#                echo "File has variable..." 
-#                has_data=1
-#        fi
   fi
 ################
 #... Create model list arrays dependent on model choices 
