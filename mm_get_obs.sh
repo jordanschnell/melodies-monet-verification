@@ -87,11 +87,11 @@ source /scratch1/BMC/wrf-chem/Jordan/miniconda3/bin/activate melodies-monet
 #melodies-monet get-ish-lite -s ${start_time_reformat} -e ${end_time_reformat} --verbose --debug --no-compress --box1=0. --box2=-140. --box3=90. --box4=-50.
 #melodies-monet get-ish-lite -s ${start_time_reformat} -e ${end_time_reformat} --verbose --debug --no-compress --num-workers=13 # Box hardcoded in monetio/obs/ish_lite.py
 melodies-monet get-ish-lite -s ${start_time_reformat} -e ${end_time_reformat} --box 0 -140 90 -50 --verbose --debug --num-workers=13
-if [[ -e ISH-Lite_${todays_date}_${endday_date} ]]; then
+if [[ -e ISH-Lite_${todays_date}_${endday_date}.nc ]]; then
    echo "obs file created for ISH/ISD"
-   mv ISH-Lite_${todays_date}_${endday_date} test5.ish-lite.${todays_date}-${endday_date}.nc
-   cp ${scriptsdir}/make_westoreastof97_ist-lite.ncl .
-   ncl make_westoreastof97_ist-lite.ncl
+   mv ISH-Lite_${todays_date}_${endday_date}.nc test5.ish-lite.${todays_date}-${endday_date}.nc
+   cp ${scriptsdir}/make_westoreastof97_ish-lite.ncl .
+   ncl make_westoreastof97_ish-lite.ncl
 else
    echo "test5 is missing for ISH!"
    #exit 1

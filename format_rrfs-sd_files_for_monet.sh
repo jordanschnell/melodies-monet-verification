@@ -51,7 +51,7 @@ echo "Working on experiment in directory ${exp}"
        ncrename -v tprcp,precip_1hr temp_dynf${frame}.nc
        ncks -O -3 temp_dynf${frame}.nc temp_dynf${frame}.nc
        # Move the file to the monet directory
-       mv temp_dynf${frame}.nc ${monetdir}/dynf_${START_TIME}_${frame}.nc
+       mv temp_dynf${frame}.nc ${monetdir}/dynf_${START_TIME}${cycleHH}_${frame}.nc
     fi
 #  done # nfiles loop
 done < ${STMP_LIST} # nexp loop
