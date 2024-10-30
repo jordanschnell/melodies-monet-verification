@@ -352,13 +352,13 @@ for s in range(len(species_list)):
 					webp= path + plot_name + ".webp"
 					if not os.path.exists(png2):
 						subprocess.run(['convert',png,'-resize', '495x270',png2])
-#					if not os.path.exists(webp):
-#						subprocess.run(['convert',png2,'-quality','100',webp])
+					if not os.path.exists(webp):
+						subprocess.run(['convert',png2,'-quality','100',webp])
 					# Encoding it
-					encoded = base64.b64encode(open(png2, 'rb').read())
+					encoded = base64.b64encode(open(webp, 'rb').read())
 		
 					# formating the encoded plot as html
-					html = '<img src="data:image/png;base64,{}">'.format
+					html = '<img src="data:image/webp;base64,{}">'.format
 		
 					# decoding the plot into an iframe
 					iframe = IFrame(html(encoded.decode('UTF-8')), width=(width*resolution), height=(height*resolution))
