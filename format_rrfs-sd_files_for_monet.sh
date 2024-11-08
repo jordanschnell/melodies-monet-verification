@@ -42,7 +42,7 @@ echo "Working on experiment in directory ${exp}"
        ncap2 -O -s 'AOD550=ext550.total($pfull)' temp_dynf${frame}.nc temp_dynf${frame}.nc
        ncks -O -d pfull,63,63 -d phalf,64,64 temp_dynf${frame}.nc temp_dynf${frame}.nc
        ncap2 -O -s 'wind10m=(vgrd10m^2.0 + ugrd10m^2.0)^0.5' temp_dynf${frame}.nc temp_dynf${frame}.nc
-       ncap2 -O -s 'WDIR_10maboveground=180.+(180./3.14159)*atan2(UGRD_10maboveground,VGRD_10maboveground)' temp_dynf${frame}.nc temp_dynf${frame}.nc
+       ncap2 -O -s 'WDIR_10maboveground=180.+(180./3.14159)*atan2(ugrd10m,vgrd10m)' temp_dynf${frame}.nc temp_dynf${frame}.nc
        # Change to mixing ratio
        ncap2 -O -s 'smoke=smoke*dens' -s 'dust=dust*dens' -s 'coarsepm=coarsepm*dens' temp_dynf${frame}.nc temp_dynf${frame}.nc
        ncap2 -O -s 'pm25=smoke+dust' temp_dynf${frame}.nc temp_dynf${frame}.nc
