@@ -36,7 +36,7 @@ echo "Working on experiment in directory ${exp}"
        ncks -A -v peak_hr phyf${frame}.nc temp_phyf${frame}.nc
        ncks -A -v coef_bb_dc phyf${frame}.nc temp_phyf${frame}.nc
        ncks -O -d pfull,63,63 -d phalf,64,64 temp_phyf${frame}.nc temp_phyf${frame}.nc
-       mv temp_phyf${frame}.nc ${monetdir}/phyf_${START_TIME}_${frame}.nc
+       mv temp_phyf${frame}.nc ${monetdir}/phyf_${START_TIME}${cycleHH}_${frame}.nc
     fi
   #done # nfiles loop
 done < ${STMP_LIST} # nexp loop
