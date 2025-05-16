@@ -16,42 +16,39 @@ YYYY=`date +%Y -d "${START_TIME}"`
 MM=`date +%m -d "${START_TIME}"`
 DD=`date +%d -d "${START_TIME}"`
 YYYYMMDD=${YYYY}${MM}${DD}
-model="RAP-Chem"
+model="MPAS-Aerosols"
 final_filename=aqm_${model}_${YYYYMMDD}${cycleHH}.nc
 final_filename3d=aqm3D_${model}_${YYYYMMDD}${cycleHH}.nc
 
-#basedatadir=/5year/BMC/wrf-chem/rap-chem/realtime/covid/wrfout/
-#datadir=${basedatadir}/${YYYY}/${MM}/${DD}/${cycleHH}
-datadir=/lfs5/BMC/rtwbl/rap-chem/homebasedir/rap-chem_databasedir/cycle_covid/${YYYY}${MM}${DD}${cycleHH}/wrfprd/output/joined
+datadir=/lfs5/BMC/rtwbl/rap-chem/mpas_rt/cycledir/stmp/${YYYY}${MM}${DD}/rrfs_mpassit_00_v2.0.9/det/
+#datadir=/lfs5/BMC/rtwbl/rap-chem/homebasedir/rap-chem_databasedir/cycle_covid/${YYYY}${MM}${DD}${cycleHH}/wrfprd/output/joined
 echo "Location of data on HPSS: ${datadir}"
 
 workdir_base=/lfs5/BMC/rtwbl/melodies-monet/model_output/${model}/
-
+mkdir -p ${workdir_base}
 cd ${workdir_base}
 workdir=${workdir_base}/${YYYYMMDD}${cycleHH}
 echo "Downloading to JET:${workdir}"
 mkdir -p ${workdir}
 # Create a directory to keep the surface data that's sent safe from removing
 
-filename="*00_surface"
+filename='mpassit*.nc'
 # Grab the files
 echo "Attepting to retrieve file: ${datadir}/${filename}"
 cd ${datadir}
-files=`find . -name ${filename} | sort`
+files=`find . -name 'mpas*.nc' | sort`
 
+#ncrcat -v
 ncrcat ${files} ${workdir}/${final_filename}
+ncks -O -d bottom_top,0,0 ${workdir}/${final_filename} ${workdir}/${final_filename}
 cd ${workdir}
-ncap2 -O -s 'WDIR10=180.+(180./3.14159)*atan2(U10,V10)' ${final_filename} ${final_filename} 
+ncap2 -O -s 'WDIR10=180.+(180./3.14159)*atan2(U10MEAN,V10MEAN)' ${final_filename} ${final_filename} 
 ncap2 -O -s 'PRECIP_1HR=PREC_ACC_C+PREC_ACC_NC' ${final_filename} ${final_filename}
 ncap2 -O -s 'T2=T2-273.15' ${final_filename} ${final_filename}
-ncap2 -O -s 'AFWA_VIS=AFWA_VIS*0.621371/1000.' ${final_filename} ${final_filename}
+ncap2 -O -s 'VIS=VIS*0.621371/1000.' ${final_filename} ${final_filename}
+ncap2 -O -s 'WIND10MEAN=(U10MEAN^2+V10MEAN^2)^(0.5)' ${final_filename} ${final_filename}
 ncap2 -O -s 'latitude=XLAT' -s 'longitude=XLONG' ${final_filename} ${final_filename}
-ncap2 -O -s 'lat=latitude' -s 'lon=longitude'  ${final_filename} ${final_filename}
 
-filename="*select3D*"
-cd ${datadir}
-files=`find . -name ${filename} | sort`
-ncrcat ${files} ${workdir}/${final_filename3d}
 
 if [[ -e ${workdir}/${final_filename} ]];then
         echo "Finished processing cycle ${YYYYMMDD}${cycleHH}"

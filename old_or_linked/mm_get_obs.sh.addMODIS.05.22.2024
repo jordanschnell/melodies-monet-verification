@@ -8,6 +8,7 @@ DATE=/bin/date
 #
 #Set up the date strings
 todays_date=`${DATE} +%Y%m%d -d ${START_TIME}`
+jtoday=`${DATE} +%j -d ${START_TIME}`
 
 # Tomorrow variables 
 YYYY_tomorrow=`${DATE} +%Y -d "${todays_date} + 24 hours"` # with activation_offset = -24, this brings us to the current time
@@ -333,6 +334,19 @@ fi
 if [[ "${OBSTYPE}" == "VIIRS" ]]; then
  ln -s /lfs5/BMC/public/data/sat/nesdis/viirs/aod/conus/* .
 fi
+
+if [[ "${OBSTYPE}" == "Google_Pollen" ]]; then
+   scp -o 'ProxyJump jschnell@gate.al.noaa.gov' jschnell@meiyu:/wrk/csd4/rahmadov/RAP-Chem/google_pollen/${YYYY_today}${MM_today}${DD_today}00/TRE_google_${YYYY_today}${MM_today}${DD_today}.png .
+   scp -o 'ProxyJump jschnell@gate.al.noaa.gov' jschnell@meiyu:/wrk/csd4/rahmadov/RAP-Chem/google_pollen/${YYYY_today}${MM_today}${DD_today}00/GRA_google_${YYYY_today}${MM_today}${DD_today}.png .
+   scp -o 'ProxyJump jschnell@gate.al.noaa.gov' jschnell@meiyu:/wrk/csd4/rahmadov/RAP-Chem/google_pollen/${YYYY_today}${MM_today}${DD_today}00/WEE_google_${YYYY_today}${MM_today}${DD_today}.png .
+   exit 0
+fi
+
+if [[ "${OBSTYPE}" == "pollen_dot_com" ]]; then
+   wget https://pollenapps.com/DF/pollen/map/pollenmapvideo.mp4
+   python ${scriptsdir}/convert_mp4_to_images.py ${workdir}
+fi
+   
 
 #--------------------------------------------------
 # --------------  Pollen --------------------------
