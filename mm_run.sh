@@ -1,8 +1,9 @@
 #!/bin/bash
 #
-source /scratch1/BMC/wrf-chem/Jordan/miniconda3/bin/activate melodies-monet-develop
-#source /mnt/lfs4/BMC/rtwbl/melodies-monet/miniconda3/bin/activate monet
+source /home/Jordan.Schnell/miniconda/bin/activate melodies-monet-develop
 module load nco
+
+set -x
 #
 DATE=/bin/date
 #Set up the date strings
@@ -23,10 +24,6 @@ HH_endday=`${DATE} +%H -d "${END_TIME}"`
 # start/end time is for yesterday, day N-1
 start_time_yaml=${YYYY_today}-${MM_today}-${DD_today}-00:00:00
 end_time_yaml=${YYYY_endday}-${MM_endday}-${DD_endday}-00:00:00
-ts_start=`date +%s -d ${YYYY_today}-${MM_today}-${DD_today}`
-ts_end=`date +%s -d ${YYYY_endday}-${MM_endday}-${DD_endday}`
-nseconds=$((${ts_end}-${ts_start}))
-nhours=$((${nseconds}/3600.))
 #
 workdir=${WORKDIR}
 mkdir -p ${workdir}
@@ -179,7 +176,6 @@ do
 done #read file
 
 # .. Other namelist
-tol_hours_missing=0  #tolerance threshold for number of hours acceptable to be missing 
 mdl_lw=1.5
 
 airnow_species=("NO2" "CO" "OZONE" "PM10" "PM25" "TEMP")
@@ -232,6 +228,7 @@ fi
 if [[ ${airnow_species[*]} =~ "${species}" ]]; then
 do_stats=1
 ts_select_time="'time'"
+
 ln -sf ../test5.airnow.${todays_date}-${endday_date}.nc test5.nc   #creating symbolic test5.nc file pointing to test5.nc.{todays_date}
 if [[ ! -e ${output_directory}/test5.airnow.${todays_date}-${endday_date}.nc ]]; then
         cp ../test5.airnow.${todays_date}-${endday_date}.nc ${output_directory}/test5.airnow.${todays_date}-${endday_date}.nc
@@ -267,7 +264,7 @@ cp ../hms_smoke_${YYYY_today}${MM_today}${DD_today}-${endday_date}.kml ${output_
 fi
 #
 # Loop over the plot types, the spatial plots take  a lot of time and may fail 
-#ip=1
+#ip=0
 for ip in $( seq 0 2 )
 do
   if [[ ${ip} == 0 ]]; then
@@ -276,7 +273,7 @@ do
   	spatial_bias=0
   	spatial_overlay=0
   	boxplot=0
-        do_stats_run=0
+        do_stats_run=${do_stats}
   elif [[ ${ip} == 1 ]]; then
   	timeseries=0
   	taylor=0
@@ -488,34 +485,18 @@ DD=`${DATE} +%d -d "${todays_date}"`   # - ${!relday} days"`
 start_time=${YYYY}${MM}${DD}${!initime}  
 
 datadir=${f12}/monet
+testfile=${datadir}/*.nc
 echo "data directory is " $datadir
+echo "model files are " $testfile
 ######## Check for data
-has_data=0
-missing=0
-  if [[ ${f3} == "rrfs" ]]; then   
-     testfile=${datadir}/dynf*.nc
-     singletestfile=${datadir}/dynf_${YYYY}${MM}${DD}_001.nc
-  elif [[ ${f3} == "wrfchem" ]]; then
-     testfile=${datadir}/wrfout*
-     singletestfile=${datadir}/wrfout_d01_${YYYY}-${MM}-${DD}_00_00_00
-  fi
-  missing=$((${nhours} - `ls ${testfile} | wc -l`))
-####################################################
+has_data=1
+nfiles=`ls ${testfile} | wc -l`
+if [[ ${nfiles} == 0 ]]; then
+   echo "NO MODEL FILES!!!"
+   exit 1
+fi
 
-  if [[ ${missing} -gt ${tol_hours_missing} ]]; then
-  	echo "Missing ${missing} files for ${f2}, more than allowed (${tol_hours_missing}), not processing "${f2}" ${!initime}Z"
-  else
-        echo "Found sufficent files to process "${f2}" "${!initime}"Z, checking if variable exists"
-	ncdump -hv ${!modname} ${singletestfile}
-	if [[ $? -eq 0 ]]; then
-		echo "File has variable..." 
-        	has_data=1
-	else
-		echo "Variable not found, excluding ${f2}"
-		has_data=0
-	fi
-        echo "Checking backup file"
-  fi
+
 ################
 #... Create model list arrays dependent on model choices 
 if [[ ${has_data} -eq 1 ]]; then    # if data exists
@@ -886,11 +867,11 @@ EOF
 fi
 ###################################################################################################################
 #Plot Types
-if [[ ${do_stats_run} -eq 0 ]]; then
+#if [[ ${do_stats_run} -eq 0 ]]; then
 cat << EOF >> tmp.control.yaml.${species}.${todays_date}
 plots:
 EOF
-fi
+#fi
 # Now insert which plot groups  
 #Timeseries plot group 1 
 if [[ ${timeseries} -eq 1 ]]; then

@@ -11,10 +11,8 @@ import re
 
 #import variables from master script
 import sys
-species_name = sys.argv[1]
-#print(species_name)
-#species_name = 'OZONE'
 
+species_name = sys.argv[1]
 #have to change the PM variable name
 if species_name == 'PM25':
     species_name = 'PM2.5'
@@ -28,7 +26,7 @@ region_type = ["epa_region", "epa_region", "epa_region", "epa_region", "epa_regi
 data = xr.open_dataset('test5.nc') #this script needs to be after the test5 file has been created for the day but before the control yaml file has been created
 
 #seperate out the site data 
-site = data['site']
+site = data['siteid']
 
 #define an array to read the sites into
 sitesinregion = []
@@ -41,14 +39,14 @@ for r in range(len(region_name)):
     region = data[region_type[r]]
     
     #loop through all the sites
-    for i in range(len(site.values[0])):
+    for i in range(len(site.values)):
 
         #select the region type data for one site and select only the values
         region_values = region.sel(x = i).values
 
         #If the site is in the specified region, append it to an array
         if region_values == region_name[r]:
-            sitesinregion.append(site.sel(x=i).values[0])
+            sitesinregion.append(site.sel(x=i).values)
 
             #append the x values to use to check if data is available for a specified species
             xregion.append(i)
@@ -77,12 +75,12 @@ for i in xregion:
 
     #skip sites that cause a parse error
     NON_PRINTABLE = re.compile('[^\x09\x0A\x0D\x20-\x7E\x85\xA0-\uD7FF\uE000-\uFFFD\U00010000-\U0010ffff]')
-    match = NON_PRINTABLE.findall(site.sel(x=i).values[0])
+    match = NON_PRINTABLE.findall(site.sel(x=i).values)
     if match:
         continue
 
     #skip sites with a / in the name
-    elif "/" in site.sel(x=i).values[0]:
+    elif "/" in site.sel(x=i).values:
         continue
    
     #skip the sites out of model domain

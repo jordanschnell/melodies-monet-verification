@@ -14,7 +14,20 @@ import glob
 import os.path
 from folium import plugins
 import subprocess
-#
+
+
+def convert_to_webp(input_path, output_path, quality=80):
+	try:
+		with Image.open(input_path) as img:
+			# Convert to RGB if the image has an alpha channel for WebP conversion
+			if img.mode == 'RGBA':
+				img = img.convert('RGB')
+			img.save(output_path, 'webp', quality=quality)
+		print(f"Successfully converted {input_path} to {output_path}")
+	except Exception as e:
+		print(f"Error converting {input_path}: {e}")
+
+
 popups = list()
 lats   = list() #np.empty(0)
 lons   = list() #np.empty(0)
@@ -45,8 +58,8 @@ start_date=sys.argv[1]
 end_date=sys.argv[2]
 todays_date=sys.argv[3]
 endday_date=sys.argv[4]
-species_list = ['PM25' , 'AOD550', 'ws', 'precip_1hr' ]
-#species_list = ['PM25', 'OZONE', 'PM10', 'CO', 'NO2', 'AOD550', 'temp', 'dew_pt_temp', 'ws', 'wdir', 'precip_1hr','vsb','HMS','ceiling']
+#species_list = ['PM25' , 'AOD550', 'ws', 'temp','PM10','vsb']
+species_list = ['PM25', 'OZONE', 'PM10', 'CO', 'NO2', 'AOD550', 'temp', 'dew_pt_temp', 'ws', 'wdir', 'precip_1hr','vsb','HMS','ceiling']
 color_list   = ['purple', 'blue', 'red', 'green' , 'yellow', 'orange', 'cyan', 'blueviolet', 'limegreen', 'maroon', 'gray', 'sienna','magenta','goldenrod']
 network_list = ['EPA AirNOW', 'EPA AirNOW','EPA AirNOW','EPA AirNOW','EPA AirNOW','EPA AirNOW','NASA AERONET','NOAA ISD','NOAA ISD','NOAA ISD','NOAA ISD','NOAA ISD','NOAA_ISD','NOAA_ISD']
 #species_list = ['temp', 'ws', 'precip_1hr']
@@ -293,8 +306,8 @@ for s in range(len(species_list)):
 		site = data['siteid'].values
 	if str(species) in airnow_species:
 		data = xr.open_dataset("test5.airnow."+todays_date+"-"+endday_date+".nc")
-		latitude = data['latitude'].values[0]
-		longitude = data['longitude'].values[0]
+		latitude = data['latitude'].values
+		longitude = data['longitude'].values
 		site = data['site'].values[0]
 	if str(species) in ish_lite_species:
 		print("adding an ish-lite species")
@@ -353,7 +366,8 @@ for s in range(len(species_list)):
 					if not os.path.exists(png2):
 						subprocess.run(['convert',png,'-resize', '495x270',png2])
 					if not os.path.exists(webp):
-						subprocess.run(['convert',png2,'-quality','100',webp])
+						convert_to_webp(png2, webp)
+					#	subprocess.run(['convert',png2,'-quality','100',webp])
 					# Encoding it
 					encoded = base64.b64encode(open(webp, 'rb').read())
 		

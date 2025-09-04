@@ -3,7 +3,7 @@ begin
 START_TIME=getenv("START_TIME")
 END_TIME=getenv("END_TIME")
 ;
-f=addfile("test5.airnow."+START_TIME+"-"+END_TIME+".nc","w")
+f=addfile("test5.aqs."+START_TIME+"-"+END_TIME+".nc","w")
 ;
 siteid=f->siteid
 longitude=f->longitude

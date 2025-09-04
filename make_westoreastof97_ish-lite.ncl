@@ -1,8 +1,9 @@
 begin
 ;
 START_TIME=getenv("START_TIME")
+END_TIME=getenv("END_TIME")
 ;
-f=addfile("test5.ish-lite."+START_TIME+".nc","w")
+f=addfile("test5.ish-lite."+START_TIME+"-"+END_TIME+".nc","w")
 ;
 siteid=f->siteid
 longitude=f->longitude
