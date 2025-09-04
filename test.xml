@@ -242,6 +242,38 @@
     </task>
   </metatask>
 
+    <task name="mm_folium_noaa" cycledefs="basehr" maxtries="1">
+      &JOIN_RESOURCES_SHORT;
+      &RESERVATION;
+      <command>&SCRIPTS_DIR;/mm_folium.sh</command>
+      <cores>&JOIN_PROC;</cores>
+      <jobname><cyclestr>mm_folium-noaa_@Y@m@d@H</cyclestr></jobname>
+      <join><cyclestr>&LOG_DIR;/mm_folium-noaa_@Y@m@d@H.log</cyclestr></join>
+      <envar>
+        <name>WORKDIR</name>
+        <value><cyclestr>&MELODIES_MONET_DIR;/@Y@m@d@H</cyclestr></value>
+      </envar>
+      <envar>
+        <name>PLOT_OUTPUT_DIR</name>
+        <value>&PLOTDIR;</value>
+      </envar>
+      <envar>
+        <name>START_TIME</name>
+        <value>&START_ANALYSIS_TIME_YYYYMMDD;</value>
+      </envar>
+      <envar>
+        <name>END_TIME</name>
+        <value>&END_ANALYSIS_TIME_YYYYMMDD;</value>
+      </envar>
+      <envar>
+        <name>SCRIPTS_DIR</name>
+        <value>&SCRIPTS_DIR;</value>
+      </envar>
+      <dependency>
+        <metataskdep metatask="mm_run"/>
+      </dependency>
+    </task>
+
 
 
 </workflow> 
