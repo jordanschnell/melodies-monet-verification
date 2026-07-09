@@ -18,7 +18,10 @@ import sys
 # ${YYYY}${MM}${DD} ${model_file} ${model_file_regridded} ${obs_data}
 #
 
-
+# Method 2: Discrete colors
+def create_discrete_colormap(color_list, name='custom_colormap'):
+   """Creates a colormap with discrete colors from the given list."""
+   return ListedColormap(color_list, name=name)
 
 def add_common_features_nostates(ax):
     ax.set_extent([-140, -50, 20, 60], crs=ccrs.PlateCarree())
@@ -63,13 +66,13 @@ cbar_colors = np.concatenate((white, blues, green_yellow_red, dark_red))
 #newcmp.set_over(purple)
 #lvls = np.linspace(0.,4.,num=19)
 #lvls_diff = np.linspace(-2.,2.,num=19)
-#lvls = [0., 10., 25., 50., 100., 250., 500., 750., 1000., 1500., 2000., 2500., 3000., 3500., 4000., 5000.] #
-#lvls = np.linspace(0,1000,num=16)
+#lvls = [0., 10., 25., 50., 100., 250., 500., 750., 1000., 1500., 2000., 2500., 3000., 3500., 4000.,  5000.] #
 lvls = [5., 50., 100., 500., 1000., 2500.];
 colors = ['green', 'limegreen', 'yellow', 'orange', 'red']
 newcmp = LinearSegmentedColormap.from_list('discrete_pollen', colors, N=5)
 newcmp.set_over('magenta')
 newcmp.set_under('white')
+#lvls = np.linspace(0,1000,num=16)
 
 norm = mpl.colors.BoundaryNorm(lvls, newcmp.N)
 diff_lb   = -500.
@@ -100,19 +103,19 @@ for ispec in obs_species_list:
    print("wokring on " + ispec)
    if fcst_type == 0:
       obs_fname  = obs_path + '/' + tomorrow + '12/' + ispec + '_' + today + '.nc'
-      model_file = mdl_path + '/' + today + cycleHH + '/' + 'aqm_MPAS-Aerosols_' + today + cycleHH + '_pollen_average.nc'
-      model_file_regridded = mdl_path + '/' + today + cycleHH + '/' + 'aqm_MPAS-Aerosols_' + today + cycleHH + '_pollen_average_regridded.nc'
-      figtitle   = 'Observed PollenSense for ' + today + ' vs. MPAS-Aerosols 1 day-forecast '
+      model_file = mdl_path + '/' + today + cycleHH + '/' + 'aqm_RAP-Chem_' + today + cycleHH + '_pollen_average.nc'
+      model_file_regridded = mdl_path + '/' + today + cycleHH + '/' + 'aqm_RAP-Chem_' + today + cycleHH + '_pollen_average_regridded.nc'
+      figtitle   = 'Observed PollenSense for ' + today + ' vs. RAP-Chem 1 day-forecast '
    elif fcst_type == 1:
       obs_fname = obs_path + '/' + tomorrow + '12/' + ispec + '_' + tomorrow + '.nc'
-      model_file = mdl_path + '/' + tomorrow + cycleHH + '/' + 'aqm_MPAS-Aerosols_' + tomorrow + cycleHH + '_pollen_average.nc'
-      model_file_regridded = mdl_path + '/' + tomorrow + cycleHH + '/' + 'aqm_MPAS-Aerosols_' + tomorrow + cycleHH + '_pollen_average_regridded.nc'
-      figtitle   = 'PollenSense Forecast for ' + tomorrow + ' produced on ' +  tomorrow + ' vs. MPAS-Aerosols 1-day forecast'
+      model_file = mdl_path + '/' + tomorrow + cycleHH + '/' + 'aqm_RAP-Chem_' + tomorrow + cycleHH + '_pollen_average.nc'
+      model_file_regridded = mdl_path + '/' + tomorrow + cycleHH + '/' + 'aqm_RAP-Chem_' + tomorrow + cycleHH + '_pollen_average_regridded.nc'
+      figtitle   = 'PollenSense Forecast for ' + tomorrow + ' produced on ' +  tomorrow + ' vs. RAP-Chem 1-day forecast'
    elif fcst_type == 2:
       obs_fname = obs_path + '/' + yesterday + '12/' + ispec + '_' + today + '.nc'
-      model_file = mdl_path + '/' + today + cycleHH + '/' + 'aqm_MPAS-Aerosols_' + tomorrow + cycleHH + '_pollen_average.nc'
-      model_file_regridded = mdl_path + '/' + today + cycleHH + '/' + 'aqm_MPAS-Aerosols_' + tomorrow + cycleHH + '_pollen_average_regridded.nc'
-      figtitle   = 'PollenSense Forecast for ' + today + ' produced on ' + yesterday + ' vs. MPAS-Aerosols 2-day forecast'
+      model_file = mdl_path + '/' + today + cycleHH + '/' + 'aqm_RAP-Chem_' + tomorrow + cycleHH + '_pollen_average.nc'
+      model_file_regridded = mdl_path + '/' + today + cycleHH + '/' + 'aqm_RAP-Chem_' + tomorrow + cycleHH + '_pollen_average_regridded.nc'
+      figtitle   = 'PollenSense Forecast for ' + today + ' produced on ' + yesterday + ' vs. RAP-Chem 2-day forecast'
    else:
       print("unrecognized forecast type/figure option, quitting")
       exit()
@@ -128,6 +131,8 @@ for ispec in obs_species_list:
    mdl_lons  = np.asarray(mdl_fid.variables['lon'])
    mdl_lats  = np.asarray(mdl_fid.variables['lat'])
    mdl_temp  = np.asarray(mdl_fid.variables['T']).squeeze() + 273.15
+   test_fid  = Dataset('/lfs5/BMC/rtwbl/rap-chem/homebasedir/static/WRF/testfile.nc')
+   mdl_cart_proj = wrf.get_basemap(wrfin=test_fid,varname='T')
    mdl_pres  = np.asarray(mdl_fid.variables['P']).squeeze() + np.asarray(mdl_fid.variables['PB']).squeeze()
    mdl_dens = ((1./287.)*(mdl_pres[:,:]/mdl_temp[:,:]))
    mdl_pollen= polp_conv * np.asarray(mdl_fid.variables[mdl_species_list[mdl_knt]]).squeeze() * mdl_dens.squeeze() 
@@ -152,7 +157,7 @@ for ispec in obs_species_list:
    axes[3*knt+1].set_xlim([-130, -60]) # Set x limits manually
    axes[3*knt+1].set_ylim([20, 65]) # Set y limits manually
    add_common_features_nostates(axes[3*knt+1])
-   axes[2*knt+1].set_title("MPAS-Aerosols (experimental)")
+   axes[2*knt+1].set_title("RAP-Chem (experimental)")
    # Add a shared colorbar
    cbar = fig.colorbar(plt.cm.ScalarMappable(norm=norm, cmap=newcmp), ax=axes[:2], orientation='horizontal', aspect=100, pad=0.025, extend='both', spacing='uniform', ticks=lvls, location='bottom')
    cbar.set_label(titles[mdl_knt] + ' Pollen Count (grains m$^{-3}$)', fontsize=12)
@@ -166,7 +171,7 @@ for ispec in obs_species_list:
    contour3 = axes[3*knt+2].contourf(obs_xs, obs_ys, data2plot, levels=lvls_diff, norm=diff_norm, cmap=diff_cmap,extent=[-130, -60, 20, 65],transform=ccrs.PlateCarree())
    axes[3*knt+2].set_xlim([-130, -60]) # Set x limits manually
    axes[3*knt+2].set_ylim([20, 65]) # Set y limits manually
-   axes[3*knt+2].set_title("MPAS-Aerosols minus PollenSense$^{TM}$")
+   axes[3*knt+2].set_title("RAP-Chem minus PollenSense$^{TM}$")
    add_common_features_nostates(axes[3*knt+2])
    diff_cbar = fig.colorbar(mpl.cm.ScalarMappable(norm=diff_norm,cmap=diff_cmap),ax=axes[3*knt+2],orientation='horizontal',label='Bias (Model - Obs)',ticks=lvls_diff,aspect=50, pad=0.025,location='bottom',extend='both')
    diff_cbar.set_ticklabels(['-500','','','300','','','100','','','100','','','300','','','500'])
@@ -174,5 +179,5 @@ for ispec in obs_species_list:
    mdl_knt = mdl_knt + 1
    fig.suptitle(figtitle, fontsize=14)
 #
-   plt_name = 'plot_grp3.pollen_'+ispec+'_'+today+'_PollenSense_MPAS-Aerosols_CONUS_'+str(fcst_type) + '.png'
+   plt_name = 'plot_grp3.pollen_'+ispec+'_'+today+'_PollenSense_RAP-Chem_CONUS_'+str(fcst_type) + '.png'
    plt.savefig(outdir + '/' + plt_name, format='png',bbox_inches='tight')

@@ -1,14 +1,12 @@
-#!/bin/bash
-#SBATCH --account=rtwbl
-#SBATCH --partition=xjet,vjet,kjet
+#!/bin/bash --login
+#SBATCH --account=acomp
+#SBATCH --partition=u1-compute
 #SBATCH --time=2:00:00
 #SBATCH -q batch
 #SBATCH -n 1 
 #SBATCH --mem-per-cpu=20G
 
-module purge
-module load gnu/13.2.0 intel/2023.2.0 netcdf/4.7.0 
-module load wgrib2/3.1.2_wmo
+module load wgrib2
 module load nco
 
 set -x
@@ -32,7 +30,7 @@ basedatadir=/mnt/lfs5/BMC/nrtrr/NCO_dirs/v0.9.5/stmp/
 datadir=${basedatadir}/${YYYY}${MM}${DD}${cycleHH}/postprd
 echo "Location of data on JET: ${datadir}"
 
-workdir_base=/lfs5/BMC/rtwbl/melodies-monet/model_output/RRFS-SD_B
+workdir_base=${MELODIES_MONET_DIR}/model_output/RRFS-SD_B
 
 cd ${workdir_base}
 workdir=${workdir_base}/${YYYYMMDD}${cycleHH}

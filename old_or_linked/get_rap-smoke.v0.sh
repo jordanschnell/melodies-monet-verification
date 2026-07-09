@@ -1,6 +1,6 @@
 #!/bin/bash -l
-#SBATCH --account=rtwbl
-#SBATCH --partition=service
+#SBATCH --account=acomp
+#SBATCH --partition=u1-service
 #SBATCH --time=07:59:00
 #SBATCH -q batch
 #SBATCH -n 1 
@@ -20,7 +20,7 @@ basedatadir=/BMC/fdr/Permanent/
 datadir=${basedatadir}/${YYYY}/${MM}/${DD}/grib/ftp_rap_hyb/7/0/105/0_794802_32769 #0_151987_30
 echo "Location of data on HPSS: ${datadir}"
 
-workdir_base=/lfs5/BMC/rtwbl/melodies-monet/model_output/${model}
+workdir_base=${MELODIES_MONET_DIR}/model_output/${model}
 meiyudir=/wrk/csd4/rahmadov/RAP-Chem/rap_smoke/${YYYYMMDD}${cycleHH}
 
 cd ${workdir_base}

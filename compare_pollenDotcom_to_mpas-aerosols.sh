@@ -32,8 +32,8 @@ workdir=${WORKDIR}
 mkdir -p ${workdir}
 cd ${workdir}
 #
-model_dir=/mnt/lfs5/BMC/rtwbl/melodies-monet/model_output/MPAS-Aerosols/
-model_datadir=/mnt/lfs5/BMC/rtwbl/melodies-monet/model_output/MPAS-Aerosols/${YYYY}${MM}${DD}${cycleHH}/
+model_dir=${MELODIES_MONET_DIR}/model_output/MPAS-Aerosols/
+model_datadir=${MELODIES_MONET_DIR}/model_output/MPAS-Aerosols/${YYYY}${MM}${DD}${cycleHH}/
 model_file_all=${model_datadir}/aqm_MPAS-Aerosols_${YYYY}${MM}${DD}${cycleHH}.nc
 model_file_yest=${model_dir}/${YYYYyt}${MMyt}${DDyt}${cycleHH}/aqm_MPAS-Aerosols_${YYYYyt}${MMyt}${DDyt}${cycleHH}
 #
@@ -56,7 +56,8 @@ obs_path=${OBS_DIR}
 #cycleHH              = sys.argv[7]
 #outdir               = sys.argv[8]
 # Now plot it
-source /mnt/lfs5/BMC/rtwbl/rap-chem/miniconda/bin/activate PP
+module load rdhpcs-conda
+conda activate /scratch4/BMC/acomp/cheMPAS-Fire/envs/melodies-monet-nrt-vx
 forecast=0
 python ${SCRIPTS_DIR}/plot_compare_pollenDotcom_to_rapchem.py ${forecast} ${obs_path} ${model_dir} ${YYYYyt}${MMyt}${DDyt} ${YYYY}${MM}${DD} ${YYYYt}${MMt}${DDt} ${cycleHH} ${output_directory} ${yesterday_j}
 #

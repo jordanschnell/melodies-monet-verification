@@ -1,6 +1,6 @@
 #!/bin/bash
-#SBATCH --account=rtwbl
-#SBATCH --partition=service
+#SBATCH --account=acomp
+#SBATCH --partition=u1-service
 #SBATCH --time=03:30:00
 #SBATCH -q batch
 #SBATCH -n 1 
@@ -22,8 +22,7 @@ basedatadir=/NCEPPROD/hpssprod/runhistory/
 datadir=${basedatadir}/rh${YYYY}/${YYYY}${MM}/${YYYY}${MM}${DD}/
 echo "Location of data on HPSS: ${datadir}"
 
-
-workdir_base=/lfs5/BMC/rtwbl/melodies-monet/model_output/${model}
+workdir_base=${MELODIES_MONET_DIR}/model_output/${model}
 meiyudir=/wrk/csd4/rahmadov/RAP-Chem/gefs_aero/${YYYYMMDD}${cycleHH}
 
 cd ${workdir_base}
@@ -37,17 +36,15 @@ echo "Attepting to retrieve file: ${datadir}/${filename}"
 htar -xf ${datadir}/${filename}
 
 cat << EOF >> get_${model}.${START_TIME}${cycleHH}.sh
-#!/bin/bash
-#SBATCH --account=rtwbl
-#SBATCH --partition=xjet,vjet,kjet
+#!/bin/bash --login
+#SBATCH --account=acomp
+#SBATCH --partition=u1-compute
 #SBATCH --time=03:00:00
 #SBATCH -n 1
 #SBATCH -q batch
 #SBATCH --mem-per-cpu=20G
 
-module purge
-module load gnu/13.2.0 intel/2023.2.0 netcdf/4.7.0 
-module load wgrib2/3.1.2_wmo
+module load wgrib2
 module load nco
 
 cd ${workdir}

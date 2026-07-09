@@ -1,6 +1,6 @@
 #!/bin/bash
-#SBATCH --account=rtwbl
-#SBATCH --partition=service
+#SBATCH --account=acomp
+#SBATCH --partition=u1-service
 #SBATCH --time=08:30:00
 #SBATCH -q batch
 #SBATCH -n 1 
@@ -21,10 +21,9 @@ echo "Getting NAQFC operational forecast data for the ${cycleHH}z cycle on ${YYY
 
 basedatadir=/BMC/fdr/Permanent/
 datadir=${basedatadir}/${YYYY}/${MM}/${DD}/grib/hrrr_wrfsfc/7/0/83/0_1905141_30/
-linkdir=/lfs5/BMC/rtwbl/rap-chem/transfer_stage/hrrr_smoke/${YYYY}${MM}${DD}${cycleHH}
 echo "Location of data on HPSS: ${datadir}"
 
-workdir_base=/lfs5/BMC/rtwbl/melodies-monet/model_output/${model}
+workdir_base=${MELODIES_MONET_DIR}/model_output/${model}
 
 meiyudir=/wrk/csd4/rahmadov/RAP-Chem/hrrr_smoke/${YYYYMMDD}${cycleHH}
 
@@ -42,17 +41,15 @@ hsi get -N ${datadir}/${filename}
 ### REST OF SCRIPT NEEDS TO BE DONE ON A COMPUTE NODE
 
 cat << EOF >> get_${model}.${START_TIME}${cycleHH}.sh
-#!/bin/bash
-#SBATCH --account=rtwbl
-#SBATCH --partition=xjet,vjet,kjet
+#!/bin/bash --login
+#SBATCH --account=acomp
+#SBATCH --partition=u1-compute
 #SBATCH --time=05:00:00
 #SBATCH -n 1
 #SBATCH -q batch
 #SBATCH --mem-per-cpu=20G
 
-module purge
-module load gnu/13.2.0 intel/2023.2.0 netcdf/4.7.0 
-module load wgrib2/3.1.2_wmo
+module load wgrib2
 module load nco
 
 cd ${workdir}
@@ -63,7 +60,7 @@ for file in ${YY}*; do
 EOF
 cat << "EOF" >> get_${model}.${START_TIME}${cycleHH}.sh
 wgrib2 -set center 7 ${file} -netcdf ${file}.nc
-ncks -v HGT_cloudceiling,DPT_2maboveground,UGRD_10maboveground,VGRD_10maboveground,WIND_10maboveground,VIS_surface,TMP_2maboveground,APCP_surface,MASSDEN_8maboveground,AOTK_entireatmosphere_consideredasasinglelayer_ ${file}.nc ${file}.smoke.nc
+ncks -v DSWRF_surface,HGT_cloudceiling,DPT_2maboveground,UGRD_10maboveground,VGRD_10maboveground,WIND_10maboveground,VIS_surface,TMP_2maboveground,APCP_surface,MASSDEN_8maboveground,AOTK_entireatmosphere_consideredasasinglelayer_ ${file}.nc ${file}.smoke.nc
 ncrename -v MASSDEN_8maboveground,PM2_5_DRY -v AOTK_entireatmosphere_consideredasasinglelayer_,AOD_550 ${file}.smoke.nc
 ncap2 -O -s 'PM2_5_DRY=1.0e9*PM2_5_DRY' ${file}.smoke.nc ${file}.smoke.nc
 ncap2 -O -s 'VIS_surface=0.000621371*VIS_surface' ${file}.smoke.nc ${file}.smoke.nc
@@ -79,9 +76,9 @@ ncrcat *smoke.nc smoke.all.${YYYY}${MM}${DD}.nc
 # Move it
 mv smoke.all.${YYYY}${MM}${DD}.nc ${final_filename}
 
-mkdir -p ${linkdir}
-cd ${linkdir}
-ln -s ${workdir}/${final_filename} .
+#mkdir -p ${linkdir}
+#cd ${linkdir}
+#ln -s ${workdir}/${final_filename} .
 cd ${workdir}
 
 echo "Getting rid non-saved files"

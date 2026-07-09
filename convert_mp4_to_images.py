@@ -6,7 +6,7 @@ videofile=outdir+"/pollenmapvideo.mp4"
 
 vidcap = cv2.VideoCapture(videofile)
 success,image = vidcap.read()
-count = 27 # Pollen.com images start at January 21
+count = 61 # Pollen.com images start at January 21
 while success:
   if count < 10:
     st = "00"+str(count)

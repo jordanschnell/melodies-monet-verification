@@ -1,6 +1,8 @@
 #!/bin/bash
 #
-source ${CONDA_DIR} ${CONDA_ENV}
+module load rdhpcs-conda
+conda activate /scratch4/BMC/acomp/cheMPAS-Fire/envs/melodies-monet-nrt-vx
+module load nco
 module load ncl 
 set -x
 #
@@ -9,6 +11,7 @@ DATE=/bin/date
 #Set up the date strings
 todays_date=`${DATE} +%Y%m%d -d ${START_TIME}`
 jtoday=`${DATE} +%j -d ${START_TIME}`
+YYtoday=`${DATE} +%y -d ${START_TIME}`
 
 # Tomorrow variables 
 YYYY_tomorrow=`${DATE} +%Y -d "${todays_date} + 24 hours"` # with activation_offset = -24, this brings us to the current time
@@ -58,14 +61,30 @@ mkdir -p ${workdir}
 cd ${workdir}
 
 #--------------------------------------------------
+# --------------  SURFRAD  --------------------------
+#--------------------------------------------------
+if [[ "${OBSTYPE}" == "surfrad" ]]; then
+baseurl=https://gml.noaa.gov/aftp/data/radiation/surfrad/realtime/
+declare -a sites=("bon" "dra" "fpk" "gwn" "psu" "red" "rut" "slv" "sxf" "tbl" "was")
+for isite in "${sites[@]}"
+do
+#https://gml.noaa.gov/aftp/data/radiation/surfrad/realtime/bon/bon25192.dat
+subdir=${isite}
+filename=${isite}${YYtoday}${jtoday}.dat
+rm -f ${filename}*
+wget ${baseurl}/${subdir}/${filename}
+done
+fi
+
+#--------------------------------------------------
 # --------------  AERONET  --------------------------
 #--------------------------------------------------
 if [[ "${OBSTYPE}" == "aeronet" ]]; then
-rm -f test5.aeronet*.nc
-#call and run reformat_airnow_rapchemtest.py with appropriate variables
-python ${scriptsdir}/reformat_aeronet_rapchemtest.py ${start_time_reformat} ${end_time_reformat}
-if [[ -e test5.aeronet.nc ]]; then
-  mv test5.aeronet.nc test5.aeronet.${todays_date}.nc
+todays_file="AERONET_L15_${YYYY_ytday}${MM_ytday}${DD_ytday}_${YYYY_tomorrow}${MM_tomorrow}${DD_tomorrow}.nc"
+rm -f ${todays_file}
+melodies-monet get-aeronet -s ${start_time_reformat} -e ${end_time_reformat} -n 12 --interp-to 0.55 --debug --verbose --no-compress
+if [[ -r ${todays_file} ]]; then
+  mv ${todays_file} test5.aeronet.${todays_date}.nc
   cp ${scriptsdir}/make_westoreastof97_aeronet.ncl .
   ncl make_westoreastof97_aeronet.ncl
 else
@@ -79,12 +98,21 @@ fi
 # --------------  AIRNOW  --------------------------
 #--------------------------------------------------
 if [[ "${OBSTYPE}" == "airnow" ]]; then
-rm -f test5.airnow*.nc
-python ${scriptsdir}/reformat_airnow_rapchemtest.py ${start_time_reformat} ${end_time_reformat}
-if [[ -e test5.airnow.nc ]]; then
-  mv test5.airnow.nc test5.airnow.${todays_date}.nc   #moving the test5.nc generated from reformat to test5.nc.{todays_date}
+todays_file="AirNow_${YYYY_ytday}${MM_ytday}${DD_ytday}_${YYYY_tomorrow}${MM_tomorrow}${DD_tomorrow}.nc"
+rm -f ${todays_file}
+melodies-monet get-airnow -s ${start_time_reformat} -e ${end_time_reformat} -n 12 --debug --verbose --no-compress
+if [[ -r ${todays_file} ]]; then
+  mv ${todays_file} test5.airnow.${todays_date}.nc   #moving the test5.nc generated from reformat to test5.nc.{todays_date}
   cp ${scriptsdir}/make_westoreastof97_airnow.ncl .
   ncl make_westoreastof97_airnow.ncl
+# Create baseline removal file
+  baselinesrcpath=${MELODIES_MONET_DIR}/src/MM_Huiying_BaselineRemoval/
+  locsetpath=${baselinesrcpath}/airnow_sites_epalist_20240716.csv
+  basefname=${baselinesrcpath}/IODA_hourlyPM25baseline_v2r1.nc
+  python ${scriptsdir}/MONETobs_debkg_v2.py ${workdir}/test5.airnow.${todays_date}.nc ${locsetpath} ${basefname}
+  module load nco
+#  ncrename -v PM2.5,PM2.5_BLremoved test5.airnow.${todays_date}_PM25blremoved_.nc
+#  ncks -A -v PM2.5_BLremoved test5.airnow.${todays_date}_PM25blremoved_.nc ${workdir}/test5.airnow.${todays_date}.nc 
 else
   echo "test5.nc is missing for airnow!"
   exit 1
@@ -322,9 +350,9 @@ fi
 # -------------- TROPOMI --------------------------
 #--------------------------------------------------
 if [[ "${OBSTYPE}" == "TROPOMI" ]]; then
- ln -s /lfs5/BMC/public/data/sat/sentinel-5p/L2/NO2/* .
- ln -s /lfs5/BMC/public/data/sat/sentinel-5p/L2/CO/* .
- ln -s /lfs5/BMC/public/data/sat/sentinel-5p/L2/HCHO/* .
+ ln -s /scratch4/BMC/public/data/sat/sentinel-5p/L2/NO2/* .
+ ln -s /scratch4/BMC/public/data/sat/sentinel-5p/L2/CO/* .
+ ln -s /scratch4/BMC/public/data/sat/sentinel-5p/L2/HCHO/* .
 fi
 #
 #
@@ -332,7 +360,7 @@ fi
 # -------------- VIIRS  --------------------------
 #--------------------------------------------------
 if [[ "${OBSTYPE}" == "VIIRS" ]]; then
- ln -s /lfs5/BMC/public/data/sat/nesdis/viirs/aod/conus/* .
+ ln -s /scratch4/BMC/public/data/sat/nesdis/viirs/aod/conus/* .
 fi
 
 if [[ "${OBSTYPE}" == "Google_Pollen" ]]; then

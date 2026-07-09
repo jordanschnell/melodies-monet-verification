@@ -1,6 +1,6 @@
 #!/bin/bash -l
-#SBATCH --account=rtwbl
-#SBATCH --partition=service
+#SBATCH --account=acomp
+#SBATCH --partition=u1-service
 #SBATCH --time=07:30:00
 #SBATCH -q batch
 #SBATCH -n 1
@@ -14,7 +14,7 @@ YYYYMMDD=${YYYY}${MM}${DD}
 model="GEOS-CF"
 final_filename=aqm_${model}_${YYYYMMDD}${cycleHH}.nc
 #
-workdir=/lfs5/BMC/rtwbl/melodies-monet/model_output/${model}/${YYYYMMDD}${cycleHH}
+workdir=${MELODIES_MONET_DIR}/model_output/${model}/${YYYYMMDD}${cycleHH}
 meiyudir=/wrk/csd4/rahmadov/RAP-Chem/geos-cf/${YYYYMMDD}${cycleHH}
 #
 mkdir -p ${workdir}

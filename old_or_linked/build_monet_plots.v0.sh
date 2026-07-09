@@ -1,6 +1,6 @@
 #!/bin/bash -l
-#SBATCH --account=rtwbl
-#SBATCH --partition=service
+#SBATCH --account=acomp
+#SBATCH --partition=u1-service
 #SBATCH --time=03:30:00
 #SBATCH -q batch
 #SBATCH -n 1 
@@ -22,10 +22,6 @@ TOMORROW=`date +"%Y%m%d" -d "${YYYY}${MM}${DD} +1 day"`
 
 # Directories
 echo "Building the MELODIES-MONET plots from the analysis performed on ${YYYYMMDD} for ${YESTERDAY} with forecast run on ${TWODAYSAGO}"
-# Defined in XML
-#basedir=/lfs5/BMC/rtwbl/melodies-monet/toweb/
-#plotdir=/lfs5/BMC/rtwbl/melodies-monet/plot_output/${YYYYMMDD}/${model_type}
-#workdir=/lfs5/BMC/rtwbl/melodies-monet/toweb/${YYYYMMDD}00/all
 #
 mkdir -p ${workdir}
 cd ${plotdir}

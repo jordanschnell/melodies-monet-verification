@@ -1,6 +1,6 @@
 #!/bin/bash -l
-#SBATCH --account=rtwbl
-#SBATCH --partition=xjet,vjet,kjet
+#SBATCH --account=acomp
+#SBATCH --partition=u1-compute
 #SBATCH --time=07:30:00
 #SBATCH -q batch
 #SBATCH -n 1
@@ -18,7 +18,7 @@ model="RAQMS"
 final_filename=aqm_${model}_${YYYYMMDD}${cycleHH}.nc
 #
 jetdir=/public/data/grids/ssec/raqms/${YYYYMMDD}/
-workdir=/lfs5/BMC/rtwbl/melodies-monet/model_output/${model}/${YYYYMMDD}${cycleHH}
+workdir=${MELODIES_MONET_DIR}/model_output/${model}/${YYYYMMDD}${cycleHH}
 #
 mkdir -p ${workdir}
 #

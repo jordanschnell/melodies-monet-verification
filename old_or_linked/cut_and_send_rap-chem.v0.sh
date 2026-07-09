@@ -1,6 +1,6 @@
 #!/bin/bash -l
-#SBATCH --account=rtwbl
-#SBATCH --partition=xjet,vjet,kjet
+#SBATCH --account=acomp
+#SBATCH --partition=u1-compute
 #SBATCH --time=10:00:00
 #SBATCH -q batch
 #SBATCH -n 1 
@@ -22,10 +22,10 @@ final_filename3d=aqm3D_${model}_${YYYYMMDD}${cycleHH}.nc
 
 #basedatadir=/5year/BMC/wrf-chem/rap-chem/realtime/covid/wrfout/
 #datadir=${basedatadir}/${YYYY}/${MM}/${DD}/${cycleHH}
-datadir=/lfs5/BMC/rtwbl/rap-chem/homebasedir/rap-chem_databasedir/cycle_covid/${YYYY}${MM}${DD}${cycleHH}/wrfprd/output/joined
+datadir=/scratch4/BMC/acomp/cheMPAS-Fire/realtime/rap-chem/homebasedir/rap-chem_databasedir/cycle_covid/${YYYY}${MM}${DD}${cycleHH}/wrfprd/output/joined
 echo "Location of data on HPSS: ${datadir}"
 
-workdir_base=/lfs5/BMC/rtwbl/melodies-monet/model_output/${model}/
+workdir_base=${MELODIES_MONET_DIR}/model_output/${model}/
 
 cd ${workdir_base}
 workdir=${workdir_base}/${YYYYMMDD}${cycleHH}

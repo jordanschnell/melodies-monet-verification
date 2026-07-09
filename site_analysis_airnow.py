@@ -34,6 +34,9 @@ site = data['site']
 sitesinregion = []
 xregion = []
 
+REGULAR_CHARS_ONLY = re.compile(r'[^\x09\x0A\x0D\x20-\x7E]')
+
+
 #loop through the specified regions
 for r in range(len(region_name)):
 
@@ -72,17 +75,33 @@ longitude = data['longitude']
 for i in xregion:
 
     #use the boolean to select the lat and lon corresponding to each site
-    site_lat = latitude.sel(x=i).values[0]
-    site_lon = longitude.sel(x=i).values[0]
+    site_lat = latitude.sel(x=i).values
+    site_lon = longitude.sel(x=i).values
 
     #skip sites that cause a parse error
     NON_PRINTABLE = re.compile('[^\x09\x0A\x0D\x20-\x7E\x85\xA0-\uD7FF\uE000-\uFFFD\U00010000-\U0010ffff]')
-    match = NON_PRINTABLE.findall(site.sel(x=i).values[0])
-    if match:
-        continue
+#    match = NON_PRINTABLE.findall(site.sel(x=i).values)
+#    match = re.findall(b"NON-PRINTABLE", site.sel(x=i).values)
+# Compile as a bytes pattern (prefix with b)
+#    NON_PRINTABLE_BYTES = re.compile(b'[^\x09\x0A\x0D\x20-\x7E\x85]') 
+
+# This will now work directly on the bytes object
+#    match = NON_PRINTABLE_BYTES.findall(site.sel(x=i).values)
+
+#    if match:
+#        continue
+
+#    NON_PRINTABLE = re.compile(r'[^\x09\x0A\x0D\x20-\x7E\x85\xA0-\uD7FF\uE000-\uFFFD]')
+#    content = str(site.sel(x=i).values)
+#    if NON_PRINTABLE.search(content):
+#        print(f"Skipping site {i}: contains invalid characters.")
+#        continue
+    #if any(ord(c) > 126 or ord(c) < 32 and c not in '\t\n\r' for c in str(site.sel(x=i).values)): continue
+    if any(ord(c) > 126 or ord(c) < 32 and c not in '\t\n\r' or c == '/' for c in str(site.sel(x=i).values)): continue
+
 
     #skip sites with a / in the name
-    elif "/" in site.sel(x=i).values[0]:
+    if "/" in site.sel(x=i).values:
         continue
    
     #skip the sites out of model domain

@@ -1,6 +1,6 @@
 #!/bin/bash -l
-#SBATCH --account=rtwbl
-#SBATCH --partition=xjet,vjet,kjet
+#SBATCH --account=acomp
+#SBATCH --partition=u1-compute
 #SBATCH --time=10:00:00
 #SBATCH -q batch
 #SBATCH -n 1 
@@ -15,16 +15,17 @@ module load nco
 YYYY=`date +%Y -d "${START_TIME}"`
 MM=`date +%m -d "${START_TIME}"`
 DD=`date +%d -d "${START_TIME}"`
+HH=${cycleHH}
 YYYYMMDD=${YYYY}${MM}${DD}
 model="MPAS-Aerosols"
 final_filename=aqm_${model}_${YYYYMMDD}${cycleHH}.nc
 final_filename3d=aqm3D_${model}_${YYYYMMDD}${cycleHH}.nc
-
-datadir=/lfs5/BMC/rtwbl/rap-chem/mpas_rt/cycledir/stmp/${YYYY}${MM}${DD}/rrfs_mpassit_00_v2.0.9/det/
+datadir="/home/Jordan.Schnell/mpas_aerosols_jet/${YYYY}${MM}${DD}${cycleHH}/rrfs_mpassit_${cycleHH}_v2.1.3/det/"
+#datadir=/lfs5/BMC/rtwbl/rap-chem/mpas_conus3km/cycledir/stmp/${YYYY}${MM}${DD}${cycleHH}/rrfs_mpassit_${cycleHH}_v2.1.1/det/
 #datadir=/lfs5/BMC/rtwbl/rap-chem/homebasedir/rap-chem_databasedir/cycle_covid/${YYYY}${MM}${DD}${cycleHH}/wrfprd/output/joined
 echo "Location of data on HPSS: ${datadir}"
 
-workdir_base=/lfs5/BMC/rtwbl/melodies-monet/model_output/${model}/
+workdir_base=${MELODIES_MONET_DIR}/model_output/${model}/
 mkdir -p ${workdir_base}
 cd ${workdir_base}
 workdir=${workdir_base}/${YYYYMMDD}${cycleHH}

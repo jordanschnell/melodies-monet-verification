@@ -24,15 +24,13 @@ output_directory=${PLOT_OUTPUT_DIR}
 mkdir -p ${output_directory}
 #
 scriptsdir=${SCRIPTS_DIR}
-if [[ "${sat_platforms[*]}" =~ "${platform}" ]] || [[ "${plot_type}" == "csi" ]] || [[ "${plot_type}" == "scorecard" ]] ; then
-  source /mnt/lfs5/BMC/rtwbl/rap-chem/miniconda/bin/activate melodies-monet-sat 
-else
-  source ${CONDA_DIR} ${CONDA_ENV}
-fi
+module load rdhpcs-conda
+conda activate ${CONDA_ENV}
+module load nco
+
 #
 #-------------------------------------------------------------------------------------
 # Load any required module
-module load nco
 #
 DATE=/bin/date
 #Set up the date strings
@@ -185,7 +183,13 @@ if [[ ${platform} == "aeronet" ]] || \
    [[ ${platform} == "openaq" ]]; then
    ts_select_time="'time'"
    if [[ -e ${OBS_DIR}/test5.${platform}.${todays_date}.nc ]]; then
-     ln -sf ${OBS_DIR}/test5.${platform}.${todays_date}.nc test5.nc
+
+#     if [[ "${species}" == "PM2.5" ]] && [[ "${platform}" == "airnow" ]] && [[ "${workdir}" == *"regional_smoke"* ]]; then
+#        ln -sf ${OBS_DIR}/test5.${platform}.${todays_date}_PM25blremoved_.nc test5.nc
+#        ln -sf ${OBS_DIR}/test5.${platform}.${todays_date}.nc test5.nc
+#     else
+        ln -sf ${OBS_DIR}/test5.${platform}.${todays_date}.nc test5.nc
+#     fi
    else
      echo "NO ${platform} DATA, exiting"
      exit 0
@@ -376,19 +380,20 @@ do
   DD=`${DATE} +%d -d "${todays_date} - ${!relday} days"`
   start_time=${YYYY}${MM}${DD}${!initime}  
   
-  datadir=/mnt/lfs5/BMC/rtwbl/melodies-monet/model_output/${f2}/${start_time}
+  # TODO - THIS SHOULD BE HOMEDIR/model_output
+  datadir=/scratch4/BMC/acomp/cheMPAS-Fire/realtime/melodies-monet/model_output/${f2}/${start_time}
   has_data=0
   missing=0
 
   # Some platforms/species will require a 3d file
   # that will be kept seperately from the 2d file for faster loading
   # Will need to add platforms, e.g., TEMPO
-  echo "Checking for testfile"
   if [[ "${platform}" == "TROPOMI" ]]; then
     testfile=${datadir}/aqm3d_${f2}_${start_time}.nc
   else
     testfile=${datadir}/aqm_${f2}_${start_time}.nc
   fi
+  echo "Checking for testfile: ${testfile}"
   if [[ ! -r ${testfile} ]]; then
     missing=$((${missing}+1))
   fi
@@ -475,11 +480,11 @@ EOF
 fi
 fi
 #
-if [[ ${f3} == "rrfs" ]] && [[ "${species}" == "PM2.5" ]]; then
-cat << EOF >> ${YAML}
-      convert_pm25: False
-EOF
-fi
+#if [[ ${f3} == "rrfs" ]] && [[ "${species}" == "PM2.5" ]]; then
+#cat << EOF >> ${YAML}
+#      convert_pm25: False
+#EOF
+#fi
 #
 if [[ "${platform}" == "airnow" ]]; then
 cat << EOF >> ${YAML}
@@ -546,13 +551,6 @@ EOF
 echo "finished catting in obs title"
 fi
 #
-#if [[ "${platform}" == "airnow" ]]; then
-#cat << EOF >> ${YAML}
-#    use_airnow: True
-#EOF
-#fi
-#
-echo "JLS, continuing outside of obs title"
 if [[ "${platform}" == "MODIS_AQUA" ]]; then
 cat << EOF >> ${YAML}
 obs:
@@ -614,7 +612,11 @@ cat << EOF >> ${YAML}
 EOF
 fi
 ###################################################################################################################
-echo "JLS, testing species PM2.5"
+#if [[ "${species}" == "PM2.5" ]] && [[ "${platform}" == "airnow" ]] && [[ "${workdir}" == *"regional_smoke"* ]]; then
+#   pmlabel='PM2.5 (baseline removed) [ug/m3]'
+#else
+pmlabel='PM2.5 (ug/m3)'
+#fi
 if [[ "${species}" == "PM2.5" ]]; then
    vmin="1.0"; vmax="200.0";
 cat << EOF >> ${YAML}
@@ -623,13 +625,15 @@ cat << EOF >> ${YAML}
         unit_scale: 1
         unit_scale_method: '*' # Multiply = '*' , Add = '+', subtract = '-', divide = '/'
         nan_value: -1.0 # Set this value to NaN
+        obs_min: 1.0
         #The obs_min, obs_max, and nan_values are set to NaN first and then the unit conversion is applied.
-        ylabel_plot: 'PM2.5 (ug/m3)' #Optional to set ylabel so can include units and/or instr etc.
+        ylabel_plot: ${pmlabel}
         ty_scale: 2.0 #Opt
         vmin_plot: ${vmin} #Opt Min for y-axis during plotting. To apply to a plot, change restrict_yaxis = True.
         vmax_plot: ${vmax} #Opt Max for y-axis during plotting. To apply to a plot, change restrict_yaxis = True.
         vdiff_plot: 15.0 #Opt +/- range to use in bias plots. To apply to a plot, change restrict_yaxis = True.
         nlevels_plot: 14 #Opt number of levels used in colorbar for contourf plot.
+
 
 EOF
 fi
@@ -1260,9 +1264,9 @@ elif [[ "${platform}" == "openaq" ]]; then
    python ${scriptsdir}/Monet-analysis-example-plots-wrf-rapchemtest_openaq.py ${do_stats}
 elif [[ "${platform}" == "MODIS_AQUA" ]] || [[ "${platform}" == "MODIS_TERRA" ]]; then
    python ${scriptsdir}/Monet-analysis-example-plots-wrf-rapchemtest_sat.py ${do_stats} ${obs_list[0]} ${mdl_list_save[*]} 
-   cp ${scriptsdir}/plot_MODIS_AOD.v0.py .
+   cp ${scriptsdir}/plot_MODIS_AOD.py .
    nmdls=${#mdl_list_save[*]}
-   python plot_MODIS_AOD.v0.py ${nmdls} ${output_directory} ${obs_list[0]} ${mdl_list_save[@]} ${mdl_path_save[@]}
+   python plot_MODIS_AOD.py ${nmdls} ${output_directory} ${obs_list[0]} ${mdl_list_save[@]} ${mdl_path_save[@]}
 elif [[ "${platform}" == "TROPOMI" ]]; then
    python ${scriptsdir}/Monet-analysis-example-plots-wrf-rapchemtest_sat_tropomi.py 
 else

@@ -1,6 +1,6 @@
 #!/bin/bash -l
-#SBATCH --account=rtwbl
-#SBATCH --partition=service
+#SBATCH --account=acomp
+#SBATCH --partition=u1-service
 #SBATCH --time=12:00:00
 #SBATCH -q batch
 #SBATCH -n 1 
@@ -27,7 +27,7 @@ datadir=${basedatadir}/rh${YYYY}/${YYYY}${MM}/${YYYY}${MM}${DD}
 #datadir=${basedatadir}/${YYYYMMDD}/${cycleHH}
 echo "Location of data on HPSS: ${datadir}"
 
-workdir_base=/lfs5/BMC/rtwbl/melodies-monet/model_output/${model}
+workdir_base=${MELODIES_MONET_DIR}/model_output/${model}
 
 cd ${workdir_base}
 workdir=${workdir_base}/${YYYYMMDD}${cycleHH}
@@ -44,8 +44,8 @@ htar -xvf ${datadir}/${filename1}
 htar -xvf ${datadir}/${filename2}
 cat << EOF >> get_${model}.${START_TIME}${cycleHH}.sh
 #!/bin/bash --login
-#SBATCH --account=rtwbl
-#SBATCH --partition=xjet,vjet,kjet
+#SBATCH --account=acomp
+#SBATCH --partition=u1-compute
 #SBATCH --time=03:00:00
 #SBATCH -n 1
 #SBATCH -q batch

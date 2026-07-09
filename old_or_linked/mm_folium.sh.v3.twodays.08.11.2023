@@ -1,10 +1,12 @@
 #!/bin/bash --login
 #
-module load imagemagick
 DATE=/bin/date
 #
-source ${CONDA_DIR} ${CONDA_ENV}
 #
+module load rdhpcs-conda
+conda activate ${CONDA_ENV}
+module load imagemagick
+set -x
 todays_date=${START_TIME}
 #
 # Today variables 

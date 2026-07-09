@@ -1,11 +1,13 @@
 #!/bin/bash --login
 
-source /mnt/lfs5/BMC/rtwbl/melodies-monet/miniconda3/bin/activate monet
+
+module load rdhpcs-conda
+conda activate ${CONDA_ENV_STABLE}
 YYYY=`date +%Y -d "${START_TIME}"`
 MM=`date +%m -d "${START_TIME}"`
 DD=`date +%d -d "${START_TIME}"`
 
-basedir=/lfs5/BMC/rtwbl/melodies-monet/model_output/ECMWF-CAMS
+basedir=${MELODIES_MONET_DIR}/model_output/ECMWF-CAMS
 workdir=${basedir}/${YYYY}${MM}${DD}00
 mkdir -p ${workdir}
 model="ECMWF-CAMS"
@@ -91,8 +93,8 @@ EOF
 python getcams.py
 cat << EOF >> get_${model}.${START_TIME}${cycleHH}.sh
 #!/bin/bash --login
-#SBATCH --account=rtwbl
-#SBATCH --partition=xjet,vjet,kjet
+#SBATCH --account=acomp
+#SBATCH --partition=u1-compute
 #SBATCH --time=03:00:00
 #SBATCH -n 1
 #SBATCH -q batch

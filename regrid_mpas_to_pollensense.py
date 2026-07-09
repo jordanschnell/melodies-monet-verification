@@ -9,7 +9,8 @@ source_file = sys.argv[1]
 outfile     = sys.argv[2]
 source_fid  = xr.open_dataset(source_file)
 
-dest_file = "/mnt/lfs5/BMC/rtwbl/rap-chem/homebasedir/static/WRF_INPUT/pollensense_30km_latlon.nc"
+dest_file = "/home/Jordan.Schnell/melodies-monet-verification/pollensense_30km_latlon.nc"
+#dest_file = "/mnt/lfs5/BMC/rtwbl/rap-chem/homebasedir/static/WRF_INPUT/pollensense_30km_latlon.nc"
 dest_fid  = xr.open_dataset(dest_file)
 
 regridder = xe.Regridder(source_fid,dest_fid,'bilinear')

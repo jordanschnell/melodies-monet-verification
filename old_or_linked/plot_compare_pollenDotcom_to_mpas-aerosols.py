@@ -55,8 +55,13 @@ newcmp.set_over(purple)
 #lvls_diff = np.linspace(-2.,2.,num=19)
 #lvls = [0., 10., 25., 50., 100., 250., 500., 750., 1000., 1500., 2000., 2500., 3000., 5000., 7500., 10000.] #
 #lvls = [0., 10., 25., 50., 100., 250., 500., 750., 1000., 1500., 2000., 2500., 5000., 7500., 10000.] #
-lvls = [0., 10., 25., 50., 100., 250., 500., 750., 1000., 1500., 2000., 2500., 3000., 4000., 5000.] #
-#lvls = np.linspace(0,1000,num=16)
+#lvls = [0., 10., 25., 50., 100., 250., 500., 750., 1000., 1500., 2000., 2500., 3000., 4000., 5000.] #
+
+lvls = [5., 50., 100., 500., 1000., 2500.];
+colors = ['green', 'limegreen', 'yellow', 'orange', 'red']
+newcmp = LinearSegmentedColormap.from_list('discrete_pollen', colors, N=5)
+newcmp.set_over('magenta')
+newcmp.set_under('white')
 
 norm = mpl.colors.BoundaryNorm(lvls, newcmp.N)
 diff_lb   = -1000.
@@ -111,7 +116,7 @@ for ispec in obs_species_list:
    mdl_lats  = np.asarray(mdl_fid.variables['lat'])
    mdl_temp  = np.asarray(mdl_fid.variables['T']).squeeze() + 273.15
    test_fid  = Dataset('/mnt/lfs5/BMC/rtwbl/rap-chem/mpas_rt/input/grids/domain_latlons/mpas_conus12km_init.nc')
-   mdl_cart_proj = wrf.get_basemap(wrfin=test_fid,varname='T')
+#   mdl_cart_proj = wrf.get_basemap(wrfin=test_fid,varname='T')
    mdl_pres  = np.asarray(mdl_fid.variables['P']).squeeze() + np.asarray(mdl_fid.variables['PB']).squeeze()
    mdl_dens = ((1./287.)*(mdl_pres[:,:]/mdl_temp[:,:]))
    mdl_pollen= polp_conv * np.asarray(mdl_fid.variables[mdl_species_list[mdl_knt]]).squeeze() * mdl_dens.squeeze() 
@@ -130,7 +135,7 @@ for ispec in obs_species_list:
    axes[2*knt+1].set_title("MPAS-Aerosols (experimental)")
    # Add a shared colorbar
    cbar = fig.colorbar(plt.cm.ScalarMappable(norm=norm, cmap=newcmp), ax=axes[1], orientation='horizontal', aspect=100, pad=0.025, extend='both', spacing='uniform', ticks=lvls, location='bottom')
-   cbar.set_ticklabels(['0','','25','','100','','500','','1000','','2000','','3000','','5000'])
+#   cbar.set_ticklabels(['0','','25','','100','','500','','1000','','2000','','3000','','5000'])
    cbar.set_label(titles[mdl_knt] + ' Pollen Count (grains m$^{-3}$)', fontsize=12)
    fig.suptitle(figtitle, fontsize=14)
 #

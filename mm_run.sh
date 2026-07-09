@@ -1,1 +1,1 @@
-mm_run_add_scorecard.sh
+mm_run.baselineremovedforregionalsmoketemporary.sh

@@ -1,14 +1,13 @@
 #!/bin/bash
-#SBATCH --account=rtwbl
-#SBATCH --partition=xjet,vjet,kjet
+#SBATCH --account=acomp
+#SBATCH --partition=u1-compute
 #SBATCH --time=2:00:00
 #SBATCH -q batch
 #SBATCH -n 1 
 #SBATCH --mem-per-cpu=20G
 
-module purge
-module load gnu/13.2.0 intel/2023.2.0 netcdf/4.7.0 
-module load wgrib2/3.1.2_wmo
+
+module load wgrib2
 module load nco
 
 set -x
@@ -32,12 +31,12 @@ echo "Getting RRFS-SD forecast data for the ${cycleHH}z cycle on ${YYYYMMDD}"
 #/public/data/grids/rrfs_a/rrfs_a.20230807/00/control/rrfs.t00z.prslev.f001.grib2 :
 
 #basedatadir=/public/data/grids/rrfs_a/
-basedatadir=/lfs5/BMC/public/data/grids/rrfs_a/
+basedatadir=/scratch4/BMC/public/data/grids/rrfs_a/
 
 datadir=${basedatadir}/rrfs.${YYYY}${MM}${DD}/${cycleHH}/
 echo "Location of data on JET: ${datadir}"
 
-workdir_base=/lfs5/BMC/rtwbl/melodies-monet/model_output/RRFS-SD
+workdir_base=${MELODIES_MONET_DIR}/model_output/RRFS-SD
 meiyudir=/wrk/csd4/rahmadov/RAP-Chem/rrfs-sd/${YYYYMMDD}${cycleHH}
 
 cd ${workdir_base}
@@ -48,16 +47,27 @@ cd ${workdir}
 
 if [[ ${processORcat} -eq 0 ]];then
 
-filename=rrfs.t${cycleHH}z.prslev.3km.f${frame}.na.grib2
+filename=rrfs.t${cycleHH}z.2dfld.3km.f${frame}.na.grib2
+filename2=rrfs.t${cycleHH}z.testbed.3km.f${frame}.na.grib2
 
 # AOD
 wgrib2 -match 'AOTK' -set center 7 ${datadir}/${filename} -netcdf ./${filename}.nc
 ncrename -v AOTK_entireatmosphere_consideredasasinglelayer_,AOD550 ./${filename}.nc
+# Downward SW
+wgrib2 -match 'DSWRF' -set center 7 ${datadir}/${filename} -netcdf ./${filename}_dswrf.nc
 # Visibility
 wgrib2 -match 'VIS' -set center 7 ${datadir}/${filename} -netcdf ./${filename}_vis.nc
 # Ceiling
 #wgrib2 -match 'CEIL' -set center 7 ${datadir}/${filename} -netcdf ./${filename}_ceil.nc
 wgrib2 -match 'HGT:cloud ceiling' -set center 7 ${datadir}/${filename} -netcdf ./${filename}_ceil.nc
+#if [[ -r ${datadir}/${filename2} ]]; then
+#   wgrib2 -match 'hour ave fcst:aerosol=Missing:aerosol_size <2.5e-06' -set center 7 ${datadir}/${filename2} -netcdf ./${filename}_pm25.nc
+#   ncrename -v MASSDEN_8maboveground,pm25 ./${filename}_pm25.nc
+#   ncap2 -O -s 'pm25=1.e9*pm25' ./${filename}_pm25.nc ./${filename}_pm25.nc
+#   wgrib2 -match 'hour ave fcst:aerosol=Missing:aerosol_size <1e-05' -set center 7 ${datadir}/${filename2} -netcdf ./${filename}_pm10.nc
+#   ncrename -v MASSDEN_8maboveground,pm10 ./${filename}_pm10.nc
+#   ncap2 -O -s 'pm10=1.e9*pm10' ./${filename}_pm10.nc ./${filename}_pm10.nc
+#else
 # fine dust
 wgrib2 -nc_nlev 1 -match 'Dust dry:aerosol_size <2.5e-06' -set center 7 ${datadir}/${filename} -netcdf ./${filename}_dust_fine.nc
 ncrename -v MASSDEN_8maboveground,dust_fine ${filename}_dust_fine.nc
@@ -67,24 +77,32 @@ ncrename -v MASSDEN_8maboveground,dust_coarse ${filename}_dust_coarse.nc
 # smoke (fine)
 wgrib2 -nc_nlev 1 -match 'organic' -set center 7 ${datadir}/${filename} -netcdf ./${filename}_smoke.nc
 ncrename -v MASSDEN_8maboveground,smoke ${filename}_smoke.nc
+#fi
+
 # Weather vars
 wgrib2 -match ":(UGRD|VGRD):10 m above ground:" -set center 7 ${datadir}/${filename} -netcdf ./${filename}_wind.nc
 ncap2 -O -s 'WIND_10maboveground=(UGRD_10maboveground^2.0 + VGRD_10maboveground^2.0)^(0.5)' ./${filename}_wind.nc ./${filename}_wind.nc
 wgrib2 -match ":(DPT|TMP):2 m above ground:" -set center 7 ${datadir}/${filename} -netcdf ./${filename}_temp.nc
-wgrib2 -match ":(APCP):surface:${h_lasthour}-${h_thishour}" -set center 7 ${datadir}/${filename} -netcdf ./${filename}_precip.nc
+wgrib2 -match "APCP" -set center 7 ${datadir}/${filename} -netcdf ./${filename}_precip.nc
 # Append
+ncks -A -v DSWRF_surface ./${filename}_rad.nc ${filename}.nc
 ncks -A -v APCP_surface ./${filename}_precip.nc ${filename}.nc
 ncks -A -v TMP_2maboveground,DPT_2maboveground ${filename}_temp.nc ${filename}.nc
 ncks -A -v UGRD_10maboveground,VGRD_10maboveground,WIND_10maboveground ${filename}_wind.nc ${filename}.nc
 ncks -A -v VIS_surface ./${filename}_vis.nc ${filename}.nc
 ncks -A -v HGT_cloudceiling ./${filename}_ceil.nc ${filename}.nc
 # Append dust vars to smoke file and calculate pm25/pm10
+#if [[ -r ${datadir}/${filename2} ]]; then
+#   ncks -A -v pm25 ./${filename}_pm25.nc ${filename}.nc
+#   ncks -A -v pm10 ./${filename}_pm10.nc ${filename}.nc
+#else
 ncks -A -v dust_fine ${filename}_dust_fine.nc ${filename}.nc
 ncks -A -v dust_coarse ${filename}_dust_coarse.nc ${filename}.nc
 ncks -A -v smoke ${filename}_smoke.nc ${filename}.nc
 ncap2 -O -s 'dust_fine=1.e9*dust_fine' -s 'dust_coarse=1.e9*dust_coarse' -s 'smoke=1.e9*smoke' ${filename}.nc ${filename}.nc
 ncap2 -O -s 'pm25=dust_fine+smoke' ${filename}.nc ${filename}.nc
 ncap2 -O -s 'pm10=pm25+dust_coarse' ${filename}.nc ${filename}.nc
+#fi
 ncap2 -O -s 'VIS_surface=0.000621371*VIS_surface' ${filename}.nc ${filename}.nc
 ncap2 -O -s 'where(VIS_surface>10.0) VIS_surface=10.0' ${filename}.nc ${filename}.nc
 # Cacluate direction
@@ -96,8 +114,6 @@ ncks -O -x -v hlevel ${filename}.nc ${filename}.nc
 ncks -O -x -v AEMFLX_surface,COLMD_entireatmosphere_consideredasasinglelayer_ ${filename}.nc ${filename}.nc
 #ncks -O -x -v dust_fine,dust_coarse ${filename}.nc ${filename}.nc
 ncap2 -O -s 'TMP_2maboveground=TMP_2maboveground-273.15' -s 'DPT_2maboveground=DPT_2maboveground-273.15' ${filename}.nc ${filename}.nc
-
-echo "Sending only the surface files to ${meiyudir} and saving to ${workdir}/save"
 
 rm -f *.grib2
 rm -f ${filename}_dust_coarse.nc
@@ -115,7 +131,7 @@ fi
 
 if [[ ${processORcat} -eq 1 ]];then
 #if [[ `ls frame* | wc -l` -eq 24 ]]; then
-   ncrcat frame_0{01..48}* ${final_filename}
+   ncrcat frame_0*nc ${final_filename}
    ln -s ${final_filename} ${final_filename2}
 #fi
 

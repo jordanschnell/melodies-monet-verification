@@ -30,8 +30,8 @@ workdir=${WORKDIR}
 mkdir -p ${workdir}
 cd ${workdir}
 #
-model_dir=/mnt/lfs5/BMC/rtwbl/melodies-monet/model_output/RAP-Chem/
-model_datadir=/mnt/lfs5/BMC/rtwbl/melodies-monet/model_output/RAP-Chem/${YYYY}${MM}${DD}${cycleHH}/
+model_dir=${MELODIES_MONET_DIR}/model_output/RAP-Chem/
+model_datadir=${MELODIES_MONET_DIR}/model_output/RAP-Chem/${YYYY}${MM}${DD}${cycleHH}/
 model_file_all=${model_datadir}/aqm_RAP-Chem_${YYYY}${MM}${DD}${cycleHH}.nc
 model_file_yest=${model_dir}/${YYYYyt}${MMyt}${DDyt}${cycleHH}/aqm_RAP-Chem_${YYYYyt}${MMyt}${DDyt}${cycleHH}.nc
 #
@@ -65,7 +65,9 @@ ncwa -O -a bottom_top ${model_file_2} ${model_file_2}
 ncrename -v XLAT,lat -v XLONG,lon ${model_file_2}
 ncrename -d west_east,lon -d south_north,lat ${model_file_2}
 #
-source /mnt/lfs5/BMC/rtwbl/rap-chem/miniconda/bin/activate PP
+
+module load rdhpcs-conda
+conda activate /scratch4/BMC/acomp/cheMPAS-Fire/envs/melodies-monet-nrt-vx
 #
 if [[ ! -r ${model_file} ]]; then
    echo "${model_file} does not exist, exiting"

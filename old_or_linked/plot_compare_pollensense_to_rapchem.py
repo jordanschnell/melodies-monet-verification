@@ -59,11 +59,16 @@ dark_red = np.array([mpl.colors.to_rgba('darkred')])
 # Concatenate all color segments
 cbar_colors = np.concatenate((white, blues, green_yellow_red, dark_red))
 # Create a custom LinearSegmentedColormap
-newcmp = mpl.colors.LinearSegmentedColormap.from_list("custom_cmap", cbar_colors, N=len(cbar_colors))
-newcmp.set_over(purple)
+#newcmp = mpl.colors.LinearSegmentedColormap.from_list("custom_cmap", cbar_colors, N=len(cbar_colors))
+#newcmp.set_over(purple)
 #lvls = np.linspace(0.,4.,num=19)
 #lvls_diff = np.linspace(-2.,2.,num=19)
-lvls = [0., 10., 25., 50., 100., 250., 500., 750., 1000., 1500., 2000., 2500., 3000., 3500., 4000.,  5000.] #
+#lvls = [0., 10., 25., 50., 100., 250., 500., 750., 1000., 1500., 2000., 2500., 3000., 3500., 4000.,  5000.] #
+lvls = [5., 50., 100., 500., 1000., 2500.];
+colors = ['green', 'limegreen', 'yellow', 'orange', 'red']
+newcmp = LinearSegmentedColormap.from_list('discrete_pollen', colors, N=5)
+newcmp.set_over('magenta')
+newcmp.set_under('white')
 #lvls = np.linspace(0,1000,num=16)
 
 norm = mpl.colors.BoundaryNorm(lvls, newcmp.N)

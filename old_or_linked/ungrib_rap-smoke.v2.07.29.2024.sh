@@ -1,13 +1,11 @@
 #!/bin/bash -l
-#SBATCH --account=rtwbl
-#SBATCH --partition=xjet,vjet,kjet
+#SBATCH --account=acomp
+#SBATCH --partition=u1-compute
 #SBATCH --time=00:59:00
 #SBATCH -q batch
 #SBATCH -n 1 
 
-module purge
-module load gnu/13.2.0 intel/2023.2.0 netcdf/4.7.0 
-module load wgrib2/3.1.2_wmo
+module load wgrib2
 module load nco
 module load ncl
 
@@ -25,7 +23,7 @@ basedatadir=/BMC/fdr/Permanent/
 datadir=${basedatadir}/${YYYY}/${MM}/${DD}/grib/ftp_rap_hyb/7/0/105/0_794802_32769 #0_151987_30
 echo "Location of data on HPSS: ${datadir}"
 
-workdir_base=/lfs5/BMC/rtwbl/melodies-monet/model_output/${model}
+workdir_base=${MELODIES_MONET_DIR}/model_output/${model}
 meiyudir=/wrk/csd4/rahmadov/RAP-Chem/rap_smoke/${YYYYMMDD}${cycleHH}
 
 cd ${workdir_base}

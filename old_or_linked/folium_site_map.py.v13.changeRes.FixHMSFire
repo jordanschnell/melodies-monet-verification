@@ -235,20 +235,19 @@ for s in range(len(species_list)):
         else:
                 data = xr.open_dataset(obs_path + "test5."+platform+"."+todays_date+".nc")
                 if platform == 'airnow':
-                    latitude = data['latitude'].values[0]
-                    longitude = data['longitude'].values[0]
+                    latitude = data['latitude'].values
+                    longitude = data['longitude'].values
                     site = data['site'].values[0]
                 else:
                     latitude = data['latitude'].values
                     longitude = data['longitude'].values
                     site = data['siteid'].values
-
                 for i in range(len(site_name)):
                         sitename_bool = site == site_name_list[i]
                         site_lat = latitude[sitename_bool]
                         site_lon = longitude[sitename_bool]
                         if len(site_lat) == 1:
-                            if model_type == "regional_smoke" and ( site_lon <= -140 or site_lon >=-50 or site_lat <= 0 ):
+                            if model_type == "regional_smoke" and ( site_lon >=-50 or site_lat <= 0 ):
                               continue
                             else:
                                 if platform == "airnow":
@@ -266,7 +265,10 @@ for s in range(len(species_list)):
                                                 else:
                                                     subprocess.run(['convert',png,'-resize','495x270',png2]) #'297x162',png2])
                                         if not os.path.isfile(webp):
-                                            subprocess.run(['convert',png2,'-quality','100',webp])
+                                            print("converting to webp")
+                                            #subprocess.run(['convert',png2,'-quality','100',webp])
+                                            img = Image.open(png2)
+                                            img.save(webp, format="WEBP", quality=100)
                                         encoded = base64.b64encode(open(webp, 'rb').read())
                                         html = '<img src="data:image/webp;base64,{}">'.format
                                         iframe = IFrame(html(encoded.decode('UTF-8')), width=(width*resolution)+20, height=(height*resolution)+20)

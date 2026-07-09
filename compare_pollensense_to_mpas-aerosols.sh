@@ -30,9 +30,9 @@ workdir=${WORKDIR}
 mkdir -p ${workdir}
 cd ${workdir}
 #
-model_dir=/mnt/lfs5/BMC/rtwbl/melodies-monet/model_output/MPAS-Aerosols/
-model_datadir=/mnt/lfs5/BMC/rtwbl/melodies-monet/model_output/MPAS-Aerosols/${YYYY}${MM}${DD}${cycleHH}/
-model_datadir_2=/mnt/lfs5/BMC/rtwbl/melodies-monet/model_output/MPAS-Aerosols/${YYYYt}${MMt}${DDt}${cycleHH}/
+model_dir=${MELODIES_MONET_DIR}/model_output/MPAS-Aerosols/
+model_datadir=${MELODIES_MONET_DIR}/model_output/MPAS-Aerosols/${YYYY}${MM}${DD}${cycleHH}/
+model_datadir_2=${MELODIES_MONET_DIR}/model_output/MPAS-Aerosols/${YYYYt}${MMt}${DDt}${cycleHH}/
 model_file_all=${model_datadir}/aqm_MPAS-Aerosols_${YYYY}${MM}${DD}${cycleHH}.nc
 model_file_all_2=${model_datadir_2}/aqm_MPAS-Aerosols_${YYYYt}${MMt}${DDt}${cycleHH}.nc
 model_file_yest=${model_dir}/${YYYYyt}${MMyt}${DDyt}${cycleHH}/aqm_MPAS-Aerosols_${YYYYyt}${MMyt}${DDyt}${cycleHH}.nc
@@ -52,25 +52,25 @@ rm -f ${model_file} ${model_file_regridded} ${model_file_2} ${model_file_regridd
 #
 ncrename -v POLP_TREE,polp_tree -v POLP_WEED,polp_weed -v POLP_GRASS,polp_grass ${model_file_all}
 ncra -d Time,1,24 -v T,P,PB,polp_tree,polp_grass,polp_weed ${model_file_all} ${model_file}
+ncap2 -O -s 'polp=polp_tree+polp_grass+polp_weed' ${model_file} ${model_file}
+ncks -O -6  ${model_file}  ${model_file}
 ncwa -O -a Time ${model_file} ${model_file}
 ncwa -O -a bottom_top ${model_file} ${model_file}
-ncrename -d west_east,lon -d south_north,lat ${model_file}
 ncap2 -O -s 'lat=XLAT' -s 'lon=XLONG' ${model_file} ${model_file}
-ncap2 -O -s 'polp=polp_tree+polp_grass+polp_weed' ${model_file} ${model_file}
-ncks -O -x -v XLAT,XLONG ${model_file} ${model_file}
+ncrename -d .west_east,lon -d .south_north,lat ${model_file}
 
 
 ncrename -v POLP_TREE,polp_tree -v POLP_WEED,polp_weed -v POLP_GRASS,polp_grass ${model_file_all_2}
 ncra -d Time,1,24 -v T,P,PB,polp_tree,polp_grass,polp_weed ${model_file_all_2} ${model_file_2}
+ncap2 -O -s 'polp=polp_tree+polp_grass+polp_weed' ${model_file_2} ${model_file_2} 
+ncks -O -6  ${model_file_2} ${model_file_2}
 ncwa -O -a Time ${model_file_2} ${model_file_2}
 ncwa -O -a bottom_top ${model_file_2} ${model_file_2}
-ncrename -d west_east,lon -d south_north,lat ${model_file_2}
 ncap2 -O -s 'lat=XLAT' -s 'lon=XLONG' ${model_file_2} ${model_file_2}
-ncap2 -O -s 'polp=polp_tree+polp_grass+polp_weed' ${model_file_2} ${model_file_2}
-ncks -O -x -v XLAT,XLONG ${model_file_2} ${model_file_2}
+ncrename -d .west_east,lon -d .south_north,lat ${model_file_2}
 
-
-source /mnt/lfs5/BMC/rtwbl/rap-chem/miniconda/bin/activate PP
+module load rdhpcs-conda
+conda activate /scratch4/BMC/acomp/cheMPAS-Fire/envs/melodies-monet-nrt-vx
 #
 if [[ ! -r ${model_file} ]]; then
    echo "${model_file} does not exist, exiting"

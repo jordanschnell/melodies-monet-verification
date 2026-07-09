@@ -86,10 +86,15 @@ dark_red = np.array([mpl.colors.to_rgba('darkred')])
 # Concatenate all color segments
 cbar_colors = np.concatenate((white, blues, green_yellow_red, dark_red))
 # Create a custom LinearSegmentedColormap
-newcmp = mpl.colors.LinearSegmentedColormap.from_list("custom_cmap", cbar_colors, N=len(cbar_colors))
-newcmp.set_over(purple)
+#newcmp = mpl.colors.LinearSegmentedColormap.from_list("custom_cmap", cbar_colors, N=len(cbar_colors))
+#newcmp.set_over(purple)
 #lvls = [0., 10., 25., 50., 100., 250., 500., 750., 1000., 1500., 2000., 2500., 5000., 7500., 10000.] #
-lvls = [0., 10., 25., 50., 100., 250., 500., 750., 1000., 1500., 2000., 2500., 3000., 3500., 5000.] #
+#lvls = [0., 10., 25., 50., 100., 250., 500., 750., 1000., 1500., 2000., 2500., 3000., 3500., 5000.] #
+lvls = [5., 50., 100., 500., 1000., 2500.];
+colors = ['green', 'limegreen', 'yellow', 'orange', 'red']
+newcmp = LinearSegmentedColormap.from_list('discrete_pollen', colors, N=5)
+newcmp.set_over('magenta')
+newcmp.set_under('white')
 
 norm = mpl.colors.BoundaryNorm(lvls, newcmp.N)
 obs_species_list = ["TRE","GRA","WEE"]
@@ -156,8 +161,6 @@ for ispec in obs_species_list:
    mdl_lons  = np.asarray(mdl_fid.variables['lon'])
    mdl_lats  = np.asarray(mdl_fid.variables['lat'])
    mdl_temp  = np.asarray(mdl_fid.variables['T']).squeeze() + 273.15
-   test_fid  = Dataset('/lfs5/BMC/rtwbl/rap-chem/homebasedir/static/WRF/testfile.nc')
-   mdl_cart_proj = wrf.get_basemap(wrfin=test_fid,varname='T')
    mdl_pres  = np.asarray(mdl_fid.variables['P']).squeeze() + np.asarray(mdl_fid.variables['PB']).squeeze()
    mdl_dens = ((1./287.)*(mdl_pres[:,:]/mdl_temp[:,:]))
    mdl_pollen= polp_conv * np.asarray(mdl_fid.variables[mdl_species_list[mdl_knt]]).squeeze() * mdl_dens.squeeze() 
@@ -193,7 +196,7 @@ for ispec in obs_species_list:
    axes[2*knt+1].set_title("RAP-Chem (experimental)")
    # Add a shared colorbar
    cbar = fig.colorbar(plt.cm.ScalarMappable(norm=norm, cmap=newcmp), ax=axes[1], orientation='horizontal', aspect=100, pad=0.025, extend='both', spacing='uniform', ticks=lvls, location='bottom')
-   cbar.set_ticklabels(['0','','25','','100','','500','','1000','','2000','','3000','','5000'])
+#   cbar.set_ticklabels(['0','','25','','100','','500','','1000','','2000','','3000','','5000'])
    cbar.set_label(titles[obs_knt] + ' Pollen Count (grains m$^{-3}$)', fontsize=12)
    cbar.ax.tick_params(labelsize=8)
    fig.suptitle(figtitle, fontsize=14)
@@ -201,3 +204,4 @@ for ispec in obs_species_list:
    plt_name = 'plot_grp3.pollen_'+ispec+'_'+today+'_Google_RAP-Chem_CONUS_'+str(fcst_type) + '.png'
    plt.savefig(outdir + '/' + plt_name, format='png',bbox_inches='tight')
    obs_knt = obs_knt + 1
+   mdl_knt = mdl_knt + 1
